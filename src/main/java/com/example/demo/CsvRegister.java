@@ -1,36 +1,46 @@
 package com.example.demo;
 
-import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import org.springframework.stereotype.Component;
 
+import lombok.RequiredArgsConstructor;
+
 @Component
+@RequiredArgsConstructor
 public class CsvRegister {
 
     private final CsvDao csvDao;
 
-    public CsvRegister(CsvDao csvDao) {
-        this.csvDao = csvDao;
-    }
-
     public void register() {
+        System.out.println("Start insert");
+        long s = System.currentTimeMillis();
         try {
-            // クラスパス上のtest.csvファイルを検索してURIオブジェクトを生成
-            URI csvUri = this.getClass().getClassLoader().getResource("test.csv").toURI();
-            // URIオブジェクトを元に文字列のファイルパスを生成
-            String filePath = Paths.get(csvUri).toAbsolutePath().toString();
-            // CSV読み込みクラス
-            // <>はジェネリクスといって、そのクラスで扱うデータ型を制限することができる
-            // 例えばCsvReaderでは読み込んだCSVをCsvRecordクラスにマッピングすることができ、それ以外のクラスにはマッピングすることができない。
-            // そのほかにもArrayListはジェネリクスを指定しない場合、Object型をaddしたりgetしたりできるが、ArrayList<String>のようにジェネリクスを指定するとString型のみを扱うことができるように制限することができる。
+            Path filePath = Paths.get(getClass().getClassLoader().getResource("test.csv").toURI());
             CsvReader<CsvRecord> csvReader = new CsvReader<>(CsvRecord.class);
-            // CSV読み込み
             List<CsvRecord> records = csvReader.read(filePath);
-            // DB登録
-            csvDao.insert(records);
+            ExecutorService service = Executors.newFixedThreadPool(4);
+            Future<Integer> future1 = service.submit(() -> csvDao.insert(records));
+            Future<Integer> future2 = service.submit(() -> csvDao.insert(records));
+            Future<Integer> future3 = service.submit(() -> csvDao.insert(records));
+            Future<Integer> future4 = service.submit(() -> csvDao.insert(records));
+            try {
+                future1.get();
+                future2.get();
+                future3.get();
+                future4.get();
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+            }
+            System.out.println(System.currentTimeMillis() - s);
+            System.out.println("End insert");
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }

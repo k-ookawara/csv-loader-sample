@@ -3,7 +3,7 @@ package com.example.demo;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,10 +20,10 @@ public class CsvReader<T> {
         this.clazz = clazz;
     }
 
-    public List<T> read(String filePath) {
-        try (InputStream in = Files.newInputStream(Paths.get(filePath), StandardOpenOption.READ)) {
+    public List<T> read(Path filePath) {
+        try (InputStream in = Files.newInputStream(filePath, StandardOpenOption.READ)) {
             CsvMapper csvMapper = new CsvMapper();
-            CsvSchema csvSchema = csvMapper.schemaFor(clazz).withHeader();
+            CsvSchema csvSchema = csvMapper.schemaFor(clazz);
             List<T> records = new ArrayList<>();
             MappingIterator<T> objectMappingIterator = csvMapper.readerFor(clazz).with(csvSchema).readValues(in);
             while (objectMappingIterator.hasNext()) {
