@@ -14,12 +14,30 @@ public interface CsvDao {
     @Insert({
         """
         <script>
-            insert into employee (name, age, birthday) values 
+            insert into mydb.employee (
+            col1,
+            col2,
+            col3,
+            col4,
+            col5,
+            col6,
+            col7,
+            col8,
+            col9,
+            col10
+            ) values 
             <foreach collection=\"records\" item=\"record\" separator=\",\"> 
             (
-            #{record.name},
-            #{record.age},
-            #{record.birthday}
+            #{record.col1},
+            #{record.col2},
+            #{record.col3},
+            #{record.col4},
+            #{record.col5},
+            #{record.col6},
+            #{record.col7},
+            #{record.col8},
+            #{record.col9},
+            #{record.col10}
             )
             </foreach>
         </script>
